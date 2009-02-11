@@ -43,7 +43,6 @@ g_mass_storage-objs		:= mass_storage.o
 g_printer-objs			:= printer.o
 g_cdc-objs			:= cdc2.o
 g_multi-objs			:= multi.o
-g_android-objs			:= android.o f_adb.o f_mass_storage_tmp.o
 
 obj-$(CONFIG_USB_ZERO)		+= g_zero.o
 obj-$(CONFIG_USB_AUDIO)		+= g_audio.o
@@ -56,5 +55,8 @@ obj-$(CONFIG_USB_G_PRINTER)	+= g_printer.o
 obj-$(CONFIG_USB_MIDI_GADGET)	+= g_midi.o
 obj-$(CONFIG_USB_CDC_COMPOSITE) += g_cdc.o
 obj-$(CONFIG_USB_G_MULTI)	+= g_multi.o
-obj-$(CONFIG_USB_ANDROID)	+= g_android.o
+obj-$(CONFIG_USB_ANDROID)	+= android.o
+obj-$(CONFIG_USB_ANDROID_ACM)	+= f_acm.o u_serial.o
+obj-$(CONFIG_USB_ANDROID_ADB)	+= f_adb.o
+obj-$(CONFIG_USB_ANDROID_MASS_STORAGE)	+= f_mass_storage_tmp.o
 
