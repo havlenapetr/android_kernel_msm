@@ -16,7 +16,6 @@
  *
  */
 
-/* FIXME: most allocations need not be GFP_ATOMIC */
 /* FIXME: management of mutexes */
 /* FIXME: msm_pmem_region_lookup return values */
 /* FIXME: way too many copy to/from user */
@@ -784,7 +783,7 @@ static int msm_get_stats(struct msm_sync *sync, void __user *arg)
 					qcmd_frame = kmalloc(sizeof(
 						struct msm_queue_cmd) +
 						sizeof(struct msm_vfe_phy_info),
-						GFP_ATOMIC);
+						GFP_KERNEL);
 					if (!qcmd_frame) {
 						rc = -ENOMEM;
 						goto failure;
@@ -1977,10 +1976,11 @@ static unsigned int msm_poll_frame(struct file *filep,
  */
 
 static void *msm_vfe_sync_alloc(int size,
-			void *syncdata __attribute__((unused)))
+			void *syncdata __attribute__((unused)),
+			gfp_t gfp)
 {
 	struct msm_queue_cmd *qcmd =
-		kmalloc(sizeof(struct msm_queue_cmd) + size, GFP_ATOMIC);
+		kmalloc(sizeof(struct msm_queue_cmd) + size, gfp);
 	return qcmd ? qcmd + 1 : NULL;
 }
 
@@ -1998,7 +1998,8 @@ static void msm_vfe_sync_free(void *ptr)
  */
 
 static void msm_vfe_sync(struct msm_vfe_resp *vdata,
-		enum msm_queue qtype, void *syncdata)
+		enum msm_queue qtype, void *syncdata,
+		gfp_t gfp)
 {
 	struct msm_queue_cmd *qcmd = NULL;
 	struct msm_queue_cmd *qcmd_frame = NULL;
@@ -2031,7 +2032,7 @@ static void msm_vfe_sync(struct msm_vfe_resp *vdata,
 			qcmd_frame =
 				kmalloc(sizeof(struct msm_queue_cmd) +
 					sizeof(struct msm_vfe_phy_info),
-					GFP_ATOMIC);
+					gfp);
 			if (!qcmd_frame)
 				goto mem_fail;
 			fphy = (struct msm_vfe_phy_info *)(qcmd_frame + 1);
@@ -2061,7 +2062,7 @@ static void msm_vfe_sync(struct msm_vfe_resp *vdata,
 			CDBG("%s: snapshot pp %d\n", __func__, sync->pict_pp);
 			qcmd_frame =
 				kmalloc(sizeof(struct msm_queue_cmd),
-					GFP_ATOMIC);
+					gfp);
 			if (!qcmd_frame)
 				goto mem_fail;
 			qcmd_frame->type = MSM_CAM_Q_VFE_MSG;
