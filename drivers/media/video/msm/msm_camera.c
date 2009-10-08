@@ -87,7 +87,8 @@ static LIST_HEAD(msm_sensors);
 		qcmd = list_first_entry(&(sync)->name,		\
 			struct msm_queue_cmd, list);		\
 		list_del_init(&qcmd->list);			\
-		kfree(qcmd);					\
+		if (qcmd->on_heap)				\
+			kfree(qcmd);				\
 	};							\
 } while (0)
 
@@ -413,7 +414,8 @@ static int __msm_get_frame(struct msm_sync *sync,
 		pphy->y_phy, pphy->cbcr_phy, (int) qcmd, (int) frame->buffer);
 
 err:
-	kfree(qcmd);
+	if (qcmd && qcmd->on_heap)
+		kfree(qcmd);
 	return rc;
 }
 
@@ -580,6 +582,7 @@ static int msm_control(struct msm_control_device *ctrl_pmsm,
 		goto end;
 	}
 
+	qcmd->on_heap = 1;
 	qcmd->type = MSM_CAM_Q_CTRL;
 	qcmd->command = ctrlcmd = (struct msm_ctrl_cmd *)(qcmd + 1);
 	*ctrlcmd = udata;
@@ -633,13 +636,8 @@ static int msm_control(struct msm_control_device *ctrl_pmsm,
 	}
 
 end:
-	/* Note: if we get here as a result of an error, we will free the
-	 * qcmd that we kmalloc() in this function.  When we come here as
-	 * a result of a successful completion, we are freeing the qcmd that
-	 * we dequeued from queue->ctrl_status_q.
-	 */
-	kfree(qcmd);
-
+	if (qcmd && qcmd->on_heap)
+		kfree(qcmd);
 	CDBG("%s: rc %d\n", __func__, rc);
 	return rc;
 }
@@ -794,6 +792,7 @@ static int msm_get_stats(struct msm_sync *sync, void __user *arg)
 					*fphy = data->phy;
 					qcmd_frame->type = MSM_CAM_Q_VFE_MSG;
 					qcmd_frame->command = fphy;
+					qcmd_frame->on_heap = 1;
 
 					CDBG("%s: phy_y %x phy_cbcr %x\n",
 						__func__, fphy->y_phy,
@@ -935,7 +934,8 @@ static int msm_get_stats(struct msm_sync *sync, void __user *arg)
 	}
 
 failure:
-	kfree(qcmd);
+	if (qcmd && qcmd->on_heap)
+		kfree(qcmd);
 
 	CDBG("%s: %d\n", __func__, rc);
 	return rc;
@@ -967,6 +967,7 @@ static int msm_ctrl_cmd_done(struct msm_control_device *ctrl_pmsm,
 	}
 
 	qcmd->command = ctrlcmd = (struct msm_ctrl_cmd *)(qcmd + 1);
+	qcmd->on_heap = 1;
 	*ctrlcmd = udata;
 	if (udata.length > 0) {
 		ctrlcmd->value = ctrlcmd + 1;
@@ -975,7 +976,8 @@ static int msm_ctrl_cmd_done(struct msm_control_device *ctrl_pmsm,
 					udata.length)) {
 			ERR_COPY_FROM_USER();
 			rc = -EFAULT;
-			kfree(qcmd);
+			if (qcmd && qcmd->on_heap)
+				kfree(qcmd);
 			goto end;
 		}
 	} else
@@ -1435,7 +1437,8 @@ static int __msm_get_pic(struct msm_sync *sync, struct msm_ctrl_cmd *ctrl)
 		ctrl->status = -1;
 	}
 
-	kfree(qcmd);
+	if (qcmd && qcmd->on_heap)
+		kfree(qcmd);
 	return rc;
 }
 
@@ -1572,6 +1575,8 @@ static int msm_pict_pp_done(struct msm_sync *sync, void __user *arg)
 		rc = -ENOMEM;
 		goto done;
 	}
+
+	qcmd->on_heap = 1;
 	ctrlcmd = (struct msm_ctrl_cmd *)(qcmd + 1);
 
 	if (udata.status & PP_PREV) {
@@ -1583,7 +1588,8 @@ static int msm_pict_pp_done(struct msm_sync *sync, void __user *arg)
 							udata.value,
 							udata.length)) {
 					ERR_COPY_FROM_USER();
-					kfree(qcmd);
+					if (qcmd && qcmd->on_heap)
+						kfree(qcmd);
 					rc = -EFAULT;
 					goto done;
 				}
@@ -1981,7 +1987,11 @@ static void *msm_vfe_sync_alloc(int size,
 {
 	struct msm_queue_cmd *qcmd =
 		kmalloc(sizeof(struct msm_queue_cmd) + size, gfp);
-	return qcmd ? qcmd + 1 : NULL;
+	if (qcmd) {
+		qcmd->on_heap = 1;
+		return qcmd + 1;
+	}
+	return NULL;
 }
 
 static void msm_vfe_sync_free(void *ptr)
@@ -1989,7 +1999,9 @@ static void msm_vfe_sync_free(void *ptr)
 	if (ptr) {
 		struct msm_queue_cmd *qcmd =
 			(struct msm_queue_cmd *)ptr;
-		kfree(qcmd - 1);
+		qcmd--;
+		if (qcmd->on_heap)
+			kfree(qcmd);
 	}
 }
 
@@ -2040,6 +2052,7 @@ static void msm_vfe_sync(struct msm_vfe_resp *vdata,
 
 			qcmd_frame->type = MSM_CAM_Q_VFE_MSG;
 			qcmd_frame->command = fphy;
+			qcmd_frame->on_heap = 1;
 
 			CDBG("%s: qcmd_frame %x phy_y %x, phy_cbcr %x\n",
 				__func__,
@@ -2065,6 +2078,7 @@ static void msm_vfe_sync(struct msm_vfe_resp *vdata,
 					gfp);
 			if (!qcmd_frame)
 				goto mem_fail;
+			qcmd_frame->on_heap = 1;
 			qcmd_frame->type = MSM_CAM_Q_VFE_MSG;
 			qcmd_frame->command = NULL;
 				spin_lock_irqsave(&sync->pict_frame_q_lock,
@@ -2092,7 +2106,8 @@ static void msm_vfe_sync(struct msm_vfe_resp *vdata,
 	return;
 
 mem_fail:
-	kfree(qcmd);
+	if (qcmd->on_heap)
+		kfree(qcmd);
 }
 
 static struct msm_vfe_callback msm_vfe_s = {
@@ -2233,6 +2248,7 @@ static int __msm_v4l2_control(struct msm_sync *sync,
 	}
 	qcmd->type = MSM_CAM_Q_V4L2_REQ;
 	qcmd->command = out;
+	qcmd->on_heap = 1;
 
 	rcmd = __msm_control(sync, &FIXME, qcmd, out->timeout_ms);
 	if (IS_ERR(rcmd)) {
@@ -2246,7 +2262,8 @@ static int __msm_v4l2_control(struct msm_sync *sync,
 	memcpy(out->value, ctrl->value, ctrl->length);
 
 end:
-	kfree(rcmd);
+	if (rcmd->on_heap)
+		kfree(rcmd);
 	CDBG("%s: rc %d\n", __func__, rc);
 	return rc;
 }
