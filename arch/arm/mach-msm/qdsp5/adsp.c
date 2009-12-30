@@ -391,8 +391,13 @@ int __msm_adsp_write(struct msm_adsp_module *module, unsigned dsp_queue_addr,
 	int cnt = 0;
 	int ret_status = 0;
 	unsigned long flags;
-	struct adsp_info *info = module->info;
+	struct adsp_info *info;
 
+	if (!module || !cmd_buf) {
+		pr_err("adsp_write: Called with NULL parameters\n");
+		return -EINVAL;
+	}
+	info = module->info;
 	spin_lock_irqsave(&adsp_cmd_lock, flags);
 
 	if (module->state != ADSP_STATE_ENABLED) {
