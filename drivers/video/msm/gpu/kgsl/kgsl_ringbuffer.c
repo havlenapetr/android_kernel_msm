@@ -346,7 +346,7 @@ static int kgsl_ringbuffer_start(struct kgsl_ringbuffer *rb)
 	kgsl_sharedmem_set(&rb->memptrs_desc, 0, 0,
 				sizeof(struct kgsl_rbmemptrs));
 
-	kgsl_sharedmem_set(&rb->buffer_desc, 0, 0xAA,
+	kgsl_sharedmem_set(&rb->buffer_desc, 0, 0x12341234,
 				(rb->sizedwords << 2));
 
 	kgsl_yamato_regwrite(device, REG_CP_RB_WPTR_BASE,
@@ -596,15 +596,16 @@ kgsl_ringbuffer_addcmds(struct kgsl_ringbuffer *rb,
 	/* reserve space to temporarily turn off protected mode
 	*  error checking if needed
 	*/
-	pmodesizedwords = pmodeoff ? 4 : 0;
+	pmodesizedwords = pmodeoff ? 8 : 0;
 
 	ringcmds = kgsl_ringbuffer_allocspace(rb,
 					pmodesizedwords + sizedwords + 6);
 
 	if (pmodeoff) {
 		/* disable protected mode error checking */
-		*ringcmds++ = pm4_type3_packet(PM4_SET_PROTECTED_MODE, 1);
-		*ringcmds++ = 0;
+		*ringcmds++ = pm4_type3_packet(PM4_ME_INIT, 2);
+		*ringcmds++ = 0x00000080;
+		*ringcmds++ = 0x00000000;
 	}
 
 	memcpy(ringcmds, cmds, (sizedwords << 2));
@@ -612,9 +613,13 @@ kgsl_ringbuffer_addcmds(struct kgsl_ringbuffer *rb,
 	ringcmds += sizedwords;
 
 	if (pmodeoff) {
+		*ringcmds++ = pm4_type3_packet(PM4_WAIT_FOR_IDLE, 1);
+		*ringcmds++ = 0;
+
 		/* re-enable protected mode error checking */
-		*ringcmds++ = pm4_type3_packet(PM4_SET_PROTECTED_MODE, 1);
-		*ringcmds++ = 1;
+		*ringcmds++ = pm4_type3_packet(PM4_ME_INIT, 2);
+		*ringcmds++ = 0x00000080;
+		*ringcmds++ = GSL_RB_PROTECTED_MODE_CONTROL;
 	}
 
 	rb->timestamp++;
