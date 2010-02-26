@@ -322,13 +322,8 @@ static int config_buf(struct usb_configuration *config,
 		dest = next;
 		while ((descriptor = *descriptors++) != NULL) {
 			intf = (struct usb_interface_descriptor *)dest;
-			if (intf->bDescriptorType == USB_DT_INTERFACE) {
-				/* don't increment bInterfaceNumber for alternate settings */
-				if (intf->bAlternateSetting == 0)
-					intf->bInterfaceNumber = interfaceCount++;
-				else
-					intf->bInterfaceNumber = interfaceCount - 1;
-			}
+			if (intf->bDescriptorType == USB_DT_INTERFACE)
+				intf->bInterfaceNumber = interfaceCount++;
 			dest += intf->bLength;
 		}
 
@@ -485,8 +480,6 @@ static int set_config(struct usb_composite_dev *cdev,
 
 		if (!f)
 			break;
-		if (f->hidden)
-			continue;
 
 		/*
 		 * Record which endpoints are used by the function. This is used
