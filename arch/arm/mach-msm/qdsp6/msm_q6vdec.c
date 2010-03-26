@@ -508,13 +508,9 @@ static int vdec_close(struct vdec_data *vd, void *argp)
 	if (ret)
 		pr_err("%s: failed to close daldevice (%d)\n", __func__, ret);
 
-	ret = dal_call_f0(vd->vdec_handle, DAL_OP_CLOSE, 0);
-	if (ret)
-		pr_err("%s: failed to close daldevice (%d)\n", __func__, ret);
-
 	if (vd->mem_initialized) {
 		list_for_each_entry(l, &vd->vdec_mem_list_head, list)
-			put_pmem_file(l->mem.file);
+		    put_pmem_file(l->mem.file);
 	}
 
 	return ret;
