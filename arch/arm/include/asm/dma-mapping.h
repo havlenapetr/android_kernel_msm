@@ -304,8 +304,13 @@ static inline dma_addr_t dma_map_single(struct device *dev, void *cpu_addr,
 {
 	BUG_ON(!valid_dma_direction(dir));
 
-	if (!arch_is_coherent())
-		dma_cache_maint(cpu_addr, size, dir);
+	if (!arch_is_coherent()) {
+		if (arch_has_speculative_dfetch())
+			/* Clean only: allow spec dfetches to use caches */
+			dma_cache_maint(cpu_addr, size, DMA_TO_DEVICE);
+		else
+			dma_cache_maint(cpu_addr, size, dir);
+	}
 
 	return virt_to_dma(dev, cpu_addr);
 }
@@ -329,9 +334,13 @@ static inline dma_addr_t dma_map_page(struct device *dev, struct page *page,
 {
 	BUG_ON(!valid_dma_direction(dir));
 
-	if (!arch_is_coherent())
-		dma_cache_maint_page(page, offset, size, dir);
-
+	if (!arch_is_coherent()) {
+		if (arch_has_speculative_dfetch())
+			/* Clean only: allow spec dfetches to use caches */
+			dma_cache_maint_page(page, offset, size, DMA_TO_DEVICE);
+		else
+			dma_cache_maint_page(page, offset, size, dir);
+	}
 	return page_to_dma(dev, page) + offset;
 }
 
@@ -429,8 +438,15 @@ static inline void dma_sync_single_range_for_device(struct device *dev,
 	if (!dmabounce_sync_for_device(dev, handle, offset, size, dir))
 		return;
 
-	if (!arch_is_coherent())
-		dma_cache_maint(dma_to_virt(dev, handle) + offset, size, dir);
+	if (!arch_is_coherent()) {
+		if (arch_has_speculative_dfetch())
+			/* Clean only: allow spec dfetches to use caches */
+			dma_cache_maint(dma_to_virt(dev, handle) + offset,
+				size, DMA_TO_DEVICE);
+		else
+			dma_cache_maint(dma_to_virt(dev, handle) + offset,
+				size, dir);
+	}
 }
 
 static inline void dma_sync_single_for_cpu(struct device *dev,
