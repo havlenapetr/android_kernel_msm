@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
-# Linux kernel version: 2.6.33.1
-# Wed Mar 24 12:08:24 2010
+# Linux kernel version: 2.6.33.2
+# Wed Apr 21 03:17:27 2010
 #
 CONFIG_ARM=y
 CONFIG_SYS_SUPPORTS_APM_EMULATION=y
@@ -902,6 +902,7 @@ CONFIG_BCM4329=m
 CONFIG_BCM4329_FW_PATH="/system/etc/firmware/fw_bcm4329.bin"
 CONFIG_BCM4329_NVRAM_PATH="/proc/calibration"
 # CONFIG_HOSTAP is not set
+# CONFIG_TIWLAN1251 is not set
 
 #
 # Enable WiMAX (Networking options) to see the WiMAX drivers
