@@ -68,6 +68,10 @@
 #error invalid memory map
 #endif
 
+#define EBI1_DUAL_128MB_128MB	17
+#define EBI1_MONO_256MB		2
+#define EBI1_MONO_128MB		1
+
 #define DECLARE_MSM_IOMAP
 #include <mach/msm_iomap.h>
 
@@ -97,6 +101,8 @@
 #define SAPPHIRE_GPIO_H2W_DATA		(86)
 #define SAPPHIRE_GPIO_H2W_CLK		(87)
 
+#define SAPPHIRE_GPIO_AUDIO_JACK	(90)
+
 #define SAPPHIRE_GPIO_UART1_RTS		(43)
 #define SAPPHIRE_GPIO_UART1_CTS		(44)
 
@@ -106,7 +112,7 @@
 ** Sapphire Altera CPLD can keep the registers value and
 ** doesn't need a shadow to backup.
 **/
-#define SAPPHIRE_CPLD_BASE   0xE8100000	/* VA */
+#define SAPPHIRE_CPLD_BASE   0xFA300000	/* VA */
 #define SAPPHIRE_CPLD_START  0x98000000	/* PA */
 #define SAPPHIRE_CPLD_SIZE   SZ_4K
 
@@ -212,6 +218,7 @@ void config_sapphire_camera_off_gpios(void);
 int sapphire_get_smi_size(void);
 unsigned int sapphire_get_hwid(void);
 unsigned int sapphire_get_skuid(void);
+unsigned int sapphire_get_die_size(void);
 unsigned int is_12pin_camera(void);
 int sapphire_is_5M_camera(void);
 int sapphire_gpio_write(struct gpio_chip *chip, unsigned n, unsigned on);
