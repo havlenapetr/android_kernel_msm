@@ -20,6 +20,9 @@
 #include <linux/module.h>
 #include <linux/wait.h>
 #include <linux/delay.h>
+#include <linux/sched.h>
+#include <linux/platform_device.h>
+#include <linux/dma-mapping.h>
 
 #include <asm/atomic.h>
 #include <asm/ioctls.h>
