@@ -20,9 +20,8 @@ obj-y += mddi.o
 
 # MDDI client/panel drivers
 #
-obj-y += mddi_client_dummy.o
+obj-y += mddi_client_simple.o
 obj-y += mddi_client_toshiba.o
-obj-y += mddi_client_nt35399.o
 
 # MDP LCD controller driver
 obj-$(CONFIG_FB_MSM_LCDC) += mdp_lcdc.o
