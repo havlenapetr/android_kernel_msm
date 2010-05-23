@@ -437,8 +437,8 @@ static struct regulator_init_data tps65023_data[5] = {
 	{
 		.constraints = {
 			.name = "dcdc1", /* VREG_MSMC2_1V29 */
-			.min_uV = 1000000,
-			.max_uV = 1300000,
+			.min_uV = 950000,
+			.max_uV = 1275000,
 			.valid_ops_mask = REGULATOR_CHANGE_VOLTAGE,
 		},
 		.consumer_supplies = tps65023_dcdc1_supplies,
@@ -1140,10 +1140,11 @@ static void __init mahimahi_init(void)
 static void __init mahimahi_fixup(struct machine_desc *desc, struct tag *tags,
 				 char **cmdline, struct meminfo *mi)
 {
+        /* Modified to extend bank 0 by 13MB */
 	mi->nr_banks = 2;
 	mi->bank[0].start = PHYS_OFFSET;
 	mi->bank[0].node = PHYS_TO_NID(PHYS_OFFSET);
-	mi->bank[0].size = (219*1024*1024);
+	mi->bank[0].size = (232*1024*1024);
 	mi->bank[1].start = MSM_HIGHMEM_BASE;
 	mi->bank[1].node = PHYS_TO_NID(MSM_HIGHMEM_BASE);
 	mi->bank[1].size = MSM_HIGHMEM_SIZE;
