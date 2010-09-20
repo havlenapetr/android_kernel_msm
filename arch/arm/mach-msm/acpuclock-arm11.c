@@ -105,6 +105,9 @@ struct clkctl_acpu_speed {
  *
  * Table stepping up/down is optimized for 256mhz jumps while staying on the
  * same PLL.
+ * 
+ * creating frequency:
+ * for 528MHz: 19.2MHz * 0x1b = 528MHz
  */
 #if (0)
 static struct clkctl_acpu_speed  acpu_freq_tbl[] = {
@@ -125,6 +128,7 @@ static struct clkctl_acpu_speed  acpu_freq_tbl[] = {
         { 537600, ACPU_PLL_2, 2, 1, 132000, 3, VDD_7, 160000, 0, 5, -1, 0x1c },
         { 556800, ACPU_PLL_2, 2, 1, 132000, 3, VDD_7, 160000, 0, 5, -1, 0x1d },
         { 576000, ACPU_PLL_2, 2, 1, 132000, 3, VDD_7, 160000, 0, 5, -1, 0x1e },
+	{ 595200, ACPU_PLL_2, 2, 1, 132000, 3, VDD_7, 160000, 0, 5, -1, 0x1f },
 	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 #else /* Table of freq we currently use. */
@@ -141,6 +145,7 @@ static struct clkctl_acpu_speed  acpu_freq_tbl[] = {
         { 537600, ACPU_PLL_2, 2, 1, 132000, 3, VDD_7, 160000, 0, 5, -1, 0x1c },
         { 556800, ACPU_PLL_2, 2, 1, 132000, 3, VDD_7, 160000, 0, 5, -1, 0x1d },
         { 576000, ACPU_PLL_2, 2, 1, 132000, 3, VDD_7, 160000, 0, 5, -1, 0x1e },
+	{ 595200, ACPU_PLL_2, 2, 1, 132000, 3, VDD_7, 160000, 0, 5, -1, 0x1f },
     	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, 
 #else
 	{ 19200, ACPU_PLL_TCXO, 0, 0, 19200, 0, VDD_0, 30720, 0, 0, 4 },
@@ -154,6 +159,7 @@ static struct clkctl_acpu_speed  acpu_freq_tbl[] = {
         { 537600, ACPU_PLL_2, 2, 1, 132000, 3, VDD_7, 160000, 0, 5, -1, 0x1c },
         { 556800, ACPU_PLL_2, 2, 1, 132000, 3, VDD_7, 160000, 0, 5, -1, 0x1d },
         { 576000, ACPU_PLL_2, 2, 1, 132000, 3, VDD_7, 160000, 0, 5, -1, 0x1e },
+	{ 595200, ACPU_PLL_2, 2, 1, 132000, 3, VDD_7, 160000, 0, 5, -1, 0x1f },
 	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 #endif
 };
@@ -171,7 +177,8 @@ static struct cpufreq_frequency_table freq_table[] = {
         { 7, 537600 },
         { 8, 556800 },
         { 9, 576000 },
-        { 10, CPUFREQ_TABLE_END }, 
+	{ 10, 595200},
+        { 11, CPUFREQ_TABLE_END }, 
 #else 
 	{ 0, 128000 },
 	{ 1, 176000 },
@@ -182,7 +189,8 @@ static struct cpufreq_frequency_table freq_table[] = {
         { 6, 537600 },
         { 7, 556800 },
         { 8, 576000 },
-	{ 9, CPUFREQ_TABLE_END },
+	{ 9, 595200},
+	{ 10, CPUFREQ_TABLE_END },
 #endif
 };
 
